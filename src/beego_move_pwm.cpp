@@ -17,13 +17,15 @@ namespace agv
         {
             MOTOR_ID_LEFT = 1, MOTOR_ID_RIGHT = 0
         }; // motor id
-        int beego_wheel_velocity = 2;
+        int beego_wheel_velocity_left = 2;
+        int beego_wheel_velocity_right = 2;
         char pwm_left = 0;
         char pwm_right = 0;
     public:
         void init();
         void setMotorMode();
-        void setMotorRotation(char &pwm);
+        void setMotorRotation_left(char &pwm);
+        void setMotorRotation_right(char &pwm);
         void move(double U);
         void convertToPWM(double U, char &left, char &right);
         double time();
@@ -34,28 +36,44 @@ namespace agv
 void agv::robot::init()
 {
     run.connect(beego_port);
-    agv::robot::setMotorMode();
+    //agv::robot::setMotorMode();
 }
 
 void agv::robot::setMotorMode()
 {
-    run.setWheelVel(MOTOR_ID_LEFT, beego_wheel_velocity);
-    run.setWheelVel(MOTOR_ID_RIGHT, beego_wheel_velocity);
+    run.setWheelVel(MOTOR_ID_LEFT, beego_wheel_velocity_left);
+    run.setWheelVel(MOTOR_ID_RIGHT, beego_wheel_velocity_right);
+    Sleep(200);
 }
 
-void agv::robot::setMotorRotation(char &pwm)
+void agv::robot::setMotorRotation_left(char &pwm)
 {
     if (pwm < 0)
     {
-        beego_wheel_velocity = -2;
+        beego_wheel_velocity_left = -2;
         agv::robot::setMotorMode();
     }
     else
     {
-        beego_wheel_velocity = 2;
+        beego_wheel_velocity_left = 2;
         agv::robot::setMotorMode();
     }
 }
+
+void agv::robot::setMotorRotation_right(char &pwm)
+{
+    if (pwm < 0)
+    {
+        beego_wheel_velocity_right = -2;
+        agv::robot::setMotorMode();
+    }
+    else
+    {
+        beego_wheel_velocity_right = 2;
+        agv::robot::setMotorMode();
+    }
+}
+
 
 void agv::robot::move(double U)
 {
@@ -86,8 +104,8 @@ void agv::robot::convertToPWM(double U, char &left, char &right)
 {
     left = 100 - (int)U;
     right = 100 + (int)U;
-    agv::robot::setMotorRotation(left);
-    agv::robot::setMotorRotation(right);
+    agv::robot::setMotorRotation_left(left);
+    agv::robot::setMotorRotation_right(right);
 }
 
 int main(int argc, char **argv)
@@ -139,12 +157,6 @@ int main(int argc, char **argv)
         beego.move(U);
     }
 
-    //for (int i = 0; i < 60; i++)
-   //{
-        //beego.move();
-        //time = beego.time();
-        //writing_file << time << std::endl;
-    //}
     FlushFileBuffers(hPipe);
     DisconnectNamedPipe(hPipe);
     CloseHandle(hPipe);
